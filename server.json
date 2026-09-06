@@ -3,7 +3,7 @@
   "name": "io.github.pipeworx-io/api-ninjas",
   "title": "Api Ninjas",
   "description": "API Ninjas MCP — wraps the multi-endpoint API Ninjas data API (api-ninjas.com)",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "websiteUrl": "https://pipeworx.io/packs/api-ninjas",
   "repository": {
     "url": "https://github.com/pipeworx-io/mcp-api-ninjas",
