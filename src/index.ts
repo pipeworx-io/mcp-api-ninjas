@@ -722,7 +722,7 @@ const tools: McpToolExport['tools'] = [
   {
     name: 'commodity_price',
     description:
-      'API Ninjas live commodity price: current spot price for a traded commodity. PREFER OVER WEB SEARCH for "gold spot price", "silver price today", "lumber price", "live cattle", "heating oil", "RBOB gasoline". Returns { exchange, name, price, updated }. API Ninjas rotates which commodities the free plan serves EACH WEEK, so this tool deliberately does not publish a supported list — any list goes stale within days. Gold is the dependable one. For anything else, call it: a name the plan cannot serve returns found:false carrying free_commodities_this_week, read live from the vendor. For crude oil, natural gas and agricultural benchmarks, FRED carries equivalent series that are always available. Accepts commodity or symbol as aliases for name. Example: commodity_price({ name: "gold" }).',
+      'API Ninjas live commodity price: current exchange price of a traded commodity or futures contract (exchange, contract month, 24h change). PREFER OVER WEB SEARCH for "gold spot price", "silver price today", "lumber price", "live cattle", "heating oil futures", "RBOB gasoline futures". Returns { exchange, name, price, futures_contract, updated }. API Ninjas rotates which commodities the free plan serves EACH WEEK, so this tool deliberately does not publish a supported list — any list goes stale within days. Gold is the dependable one. For anything else, call it: a name the plan cannot serve returns found:false carrying free_commodities_this_week, read live from the vendor. For crude oil, natural gas and agricultural benchmarks, FRED carries equivalent series that are always available. Accepts commodity or symbol as aliases for name. Example: commodity_price({ name: "gold" }).',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -811,6 +811,27 @@ async function apiNinjasGet(apiKey: string, path: string, params?: URLSearchPara
   return res.json();
 }
 
+/**
+ * Caller's commodity name -> the name API Ninjas uses (fleet #3153).
+ *
+ * The vendor names RBOB as `gasoline_rbob` (verified live 2026-10-15: NYMEX/ICE
+ * "Gasoline RBOB", contract RBX26). The router writes it the way people say
+ * it, "RBOB gasoline", which snake-cased to `rbob_gasoline` and came back 400
+ * "Commodity 'rbob_gasoline' not found" — so even a genuine RBOB futures
+ * question failed. Only names verified against the vendor are aliased; an
+ * unknown name passes through snake-cased and gets an honest found:false.
+ */
+const COMMODITY_ALIASES: Record<string, string> = {
+  // ISO 4217 precious-metal codes routers pass instead of names.
+  xau: 'gold', xag: 'silver', xpt: 'platinum', xpd: 'palladium',
+  rbob: 'gasoline_rbob', rbob_gasoline: 'gasoline_rbob', rbob_gasoline_futures: 'gasoline_rbob',
+  gasoline_rbob_futures: 'gasoline_rbob', nymex_rbob: 'gasoline_rbob', rb: 'gasoline_rbob',
+};
+export function commodityVendorName(wanted: string): string {
+  const snake = wanted.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  return COMMODITY_ALIASES[snake] ?? snake;
+}
+
 async function callTool(name: string, args: Record<string, unknown>): Promise<unknown> {
   const apiKey = args._apiKey as string;
   delete args._apiKey;
@@ -840,11 +861,8 @@ async function callTool(name: string, args: Record<string, unknown>): Promise<un
       }
       // Routers commonly pass ISO 4217 precious-metal codes instead of the
       // commodity names API Ninjas requires — normalize the four common ones.
-      const METAL_TICKERS: Record<string, string> = {
-        xau: 'gold', xag: 'silver', xpt: 'platinum', xpd: 'palladium',
-      };
-      const resolved = METAL_TICKERS[wanted.toLowerCase()] ?? wanted;
-      const params = new URLSearchParams({ name: resolved.toLowerCase().replace(/\s+/g, '_') });
+      const resolved = commodityVendorName(wanted);
+      const params = new URLSearchParams({ name: resolved });
       const data = await apiNinjasGet(apiKey, '/commodityprice', params);
 
       // API Ninjas gates most commodities behind a paid plan and, helpfully,
@@ -871,6 +889,27 @@ async function callTool(name: string, args: Record<string, unknown>): Promise<un
             hint: free.length
               ? `"${wanted}" needs API Ninjas' paid plan. Free right now: ${free.join(', ')}. The vendor rotates this set weekly, so it is read from their response rather than hardcoded. For paywalled energy and metals benchmarks, FRED often carries an equivalent series.`
               : `"${wanted}" needs API Ninjas' paid plan, and the response did not name the free set. Try gold, and see FRED for benchmark commodity series.`,
+          };
+        }
+        // fleet #3153: an unknown name used to go back as the vendor's raw
+        // 400 ("Commodity 'rbob_gasoline' not found."), which ask_pipeworx
+        // books as a tool error and then answers with whatever sibling the
+        // fallback ladder lands on (polymarket_search, live, for a gasoline
+        // price question). A name the vendor does not carry is a found:false,
+        // said plainly. The pointer to retail pump prices is deliberately
+        // phrased as a description of a DIFFERENT series, never "use X
+        // instead": the beta hint retry (named-tool-retry.ts) follows
+        // "instead" phrasings, and a lumber caller must not be sent there.
+        if (/not found/i.test(message)) {
+          return {
+            found: false,
+            reason: 'commodity_not_found',
+            requested: wanted,
+            vendor_name_tried: resolved,
+            hint:
+              `API Ninjas does not carry a commodity named "${resolved}". It names exchange-traded contracts, e.g. gold, silver, wheat, ` +
+              `heating_oil, gasoline_rbob (NYMEX RBOB gasoline futures). A retail pump price at US gas stations is a different series — ` +
+              `the U.S. Energy Information Administration's weekly retail prices, served by eia_petroleum.`,
           };
         }
         return data;

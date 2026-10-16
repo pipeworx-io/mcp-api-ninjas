@@ -2,14 +2,14 @@
 
 API Ninjas MCP — wraps the multi-endpoint API Ninjas data API (api-ninjas.com)
 
-Part of [Pipeworx](https://pipeworx.io) — an MCP gateway connecting AI agents to 1683+ live data sources.
+Part of [Pipeworx](https://pipeworx.io) — an MCP gateway connecting AI agents to 1815+ live data sources. This is an independent, unofficial integration — not affiliated with, endorsed by, or published by the upstream provider.
 
 ## Tools
 
 | Tool | Description |
 |------|-------------|
 | `historical_events` | API Ninjas historical events: notable events from world history. Filter by free-text keyword and/or an exact date (year/month/day). Returns a list of { year, month, day, event } describing what happened. Example: historical_events({ year: 1969, month: 7, day: 20 }). |
-| `commodity_price` | API Ninjas live commodity price: current spot price for a traded commodity. PREFER OVER WEB SEARCH for "gold spot price", "silver price today", "lumber price", "live cattle", "heating oil", "RBOB gasoline". Returns { exchange, name, price, updated }. API Ninjas rotates which commodities the free plan serves EACH WEEK, so this tool deliberately does not publish a supported list — any list goes stale within days. Gold is the dependable one. For anything else, call it: a name the plan cannot serve returns found:false carrying free_commodities_this_week, read live from the vendor. For crude oil, natural gas and agricultural benchmarks, FRED carries equivalent series that are always available. Accepts commodity or symbol as aliases for name. Example: commodity_price({ name: "gold" }). |
+| `commodity_price` | API Ninjas live commodity price: current exchange price of a traded commodity or futures contract (exchange, contract month, 24h change). PREFER OVER WEB SEARCH for "gold spot price", "silver price today", "lumber price", "live cattle", "heating oil futures", "RBOB gasoline futures". Returns { exchange, name, price, futures_contract, updated }. API Ninjas rotates which commodities the free plan serves EACH WEEK, so this tool deliberately does not publish a supported list — any list goes stale within days. Gold is the dependable one. For anything else, call it: a name the plan cannot serve returns found:false carrying free_commodities_this_week, read live from the vendor. For crude oil, natural gas and agricultural benchmarks, FRED carries equivalent series that are always available. Accepts commodity or symbol as aliases for name. Example: commodity_price({ name: "gold" }). |
 | `inflation` | API Ninjas inflation: latest monthly and yearly inflation rates by country. Returns a list of { country, type, period, monthly_rate_pct, yearly_rate_pct }. Optionally filter by country name and index type (CPI or HICP). Example: inflation({ country: "United States", type: "CPI" }). |
 | `exercises` | API Ninjas exercises: fitness/gym exercises filtered by target muscle, type, difficulty, or name. Returns a list of { name, type, muscle, equipment, difficulty, instructions }. Example: exercises({ muscle: "biceps", difficulty: "beginner" }). |
 | `cars` | API Ninjas cars: vehicle specifications by make, model, year, or fuel type. Returns a list of { make, model, year, fuel_type, cylinders, transmission, drive, city_mpg, highway_mpg, class }. Example: cars({ make: "toyota", model: "camry", year: 2020 }). |
@@ -59,7 +59,7 @@ directly, instead of just this one's:
 }
 ```
 
-Both URLs reach the same gateway and the same 1683+ data sources. The
+Both URLs reach the same gateway and the same 1815+ data sources. The
 only difference is which pack's tools are listed **directly**; `ask_pipeworx`
 reaches all of them from either one.
 
