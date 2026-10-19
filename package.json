@@ -1,6 +1,6 @@
 {
   "name": "@pipeworx/mcp-api-ninjas",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "API Ninjas MCP — wraps the multi-endpoint API Ninjas data API (api-ninjas.com)",
   "type": "module",
   "main": "src/index.ts",
@@ -26,7 +26,7 @@
     "@cloudflare/workers-types": "^4.20260405.1"
   },
   "pipeworx": {
-    "sourceHash": "v1-9c3386af55d6a3c14293fa2bf6abfaa87f6ce9379270aeb9be25dcac20402041",
-    "sourceCommit": "fe38188882d0fe91e5a45d82b7b989b4aae1e8b6"
+    "sourceHash": "v1-9c5b78bafdf79f926ff5eaa9d8e27df7506c9d845c83f5e28ee1f17286b6d91f",
+    "sourceCommit": "351c40908821cfecc9bb2f5849d87bbfdbb26d75"
   }
 }
