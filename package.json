@@ -1,7 +1,7 @@
 {
   "name": "@pipeworx/mcp-api-ninjas",
-  "version": "0.2.1",
-  "description": "API Ninjas MCP — wraps the multi-endpoint API Ninjas data API (api-ninjas.com)",
+  "version": "0.2.2",
+  "description": "Unofficial API Ninjas MCP — wraps the multi-endpoint API Ninjas data API (api-ninjas.com)",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
@@ -27,7 +27,7 @@
     "mode": "gateway",
     "slug": "api-ninjas",
     "gatewaySlug": "api_ninjas",
-    "sourceHash": "v1-cb53de761ed4ab4cca11eee931662d29105482bb09c5e6dfd092984032fe4e7a",
-    "sourceCommit": "aef970216f5309cdd22a27ddfc275e472aaadac1"
+    "sourceHash": "v1-fda43734c4d0cd53a014a7cdc4c4df6ae51def02e73329625bcc445cccceb17d",
+    "sourceCommit": "874331b0c46b151f9264bd14840631427a7721c1"
   }
 }
